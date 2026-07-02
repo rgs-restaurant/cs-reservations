@@ -6,7 +6,7 @@ import { campingConfig, tarifs } from './config.js';
 import { deriveKey, verifyKey, generateSalt, createKeyTest } from './crypto.js';
 import {
   auth, login, logout, onAuthChange,
-  getSalt, getOrInitMeta, getKeyTest,
+  getSalt, getKeyTest, initMeta,
   nextNS, saveReservation, loadReservations, anonymizeOnDeparture,
 } from './db.js';
 import { sendInvoiceEmail, buildInvoiceHTML } from './email.js';
