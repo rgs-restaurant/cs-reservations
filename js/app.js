@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { campingConfig, tarifs } from './config.js';
-import { deriveKey, verifyKey }  from './crypto.js';
+import { deriveKey, verifyKey, generateSalt, createKeyTest } from './crypto.js';
 import {
   auth, login, logout, onAuthChange,
   getSalt, getOrInitMeta, getKeyTest,
@@ -130,31 +130,25 @@ document.getElementById('form-passphrase')?.addEventListener('submit', async e =
 });
 
 async function initCryptoKey(passphrase) {
-  // Première utilisation : pas de sel → on crée la clé, getOrInitMeta stocke tout
   let salt = await getSalt();
 
   if (!salt) {
-    // Toute première utilisation du camping : la clé dérive de la phrase,
-    // puis on stocke le sel + la valeur de test
-    const tmpKey = await deriveKey(passphrase, btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))));
-    // On laisse getOrInitMeta générer le sel définitif
-    const meta = await getOrInitMeta(tmpKey);
-    salt = meta.salt;
+    // Première utilisation : on génère le sel ici, une seule fois
+    salt = generateSalt();
+    const key  = await deriveKey(passphrase, salt);
+    const test = await createKeyTest(key);
+    await initMeta(salt, test);
+    cryptoKey = key;
+    return;
   }
 
+  // Connexions suivantes : vérifier la phrase
   const key  = await deriveKey(passphrase, salt);
   const test = await getKeyTest();
-
   if (test) {
-    // Vérifie que la phrase est correcte
     const valid = await verifyKey(key, test);
     if (!valid) throw new Error('Phrase de chiffrement incorrecte.');
-  } else {
-    // Stocker la valeur de test (cas première utilisation)
-    const meta = await getOrInitMeta(key);
-    if (!await verifyKey(key, meta.test)) throw new Error('Erreur inattendue lors de l\'initialisation.');
   }
-
   cryptoKey = key;
 }
 
