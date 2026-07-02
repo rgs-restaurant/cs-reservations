@@ -72,6 +72,10 @@ export async function getKeyTest() {
   return snap.data().test ?? null;
 }
 
+export async function initMeta(salt, test) {
+  await setDoc(doc(db, 'meta', 'config'), { salt, test });
+}
+
 // ── Numérotation NS (atomique) ────────────────────────────────
 export async function nextNS() {
   const year    = String(new Date().getFullYear());
