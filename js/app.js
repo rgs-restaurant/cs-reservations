@@ -229,7 +229,7 @@ export async function openDetail(firestoreId) {
 
   document.getElementById('det-sejour').innerHTML = `
     <div class="card-title">Séjour</div>
-    <div class="info-row"><span class="info-label">Forfait</span><span class="info-value">${r.electricity ? `⚡ Avec électricité — Prise n°${r.socketId}` : 'Sans électricité'}</span></div>
+    <div class="info-row"><span class="info-label">Forfait</span><span class="info-value">${r.electricity ? `⚡ Avec électricité ` : 'Sans électricité'}</span></div>
     <div class="info-row"><span class="info-label">Arrivée</span><span class="info-value">${fmtDate(r.arrivalDate)}</span></div>
     <div class="info-row"><span class="info-label">Départ</span><span class="info-value">${fmtDate(r.departureDate)}</span></div>
     <div class="info-row"><span class="info-label">Durée</span><span class="info-value">${r.nights} nuit${r.nights > 1 ? 's' : ''}</span></div>`;
