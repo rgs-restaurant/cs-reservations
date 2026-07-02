@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sagnat">
+<title>Camping de Sagnat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONNEXION
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view active" id="view-login">
+  <div class="login-wrap">
+    <div class="login-logo">Camping de Sagnat</div>
+    <div class="login-sub">Gestion interne</div>
+
+    <div class="login-error" id="login-error"></div>
+
+    <form id="form-login" autocomplete="on">
+      <div class="field"><label>Email</label>
+        <input id="login-email" type="email" placeholder="camping.sagnat@gmail.com" autocomplete="email" required></div>
+      <div class="field"><label>Mot de passe</label>
+        <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required></div>
+
+      <div class="login-divider"><span>Chiffrement des données</span></div>
+      <p class="passphrase-note">
+        Cette phrase déchiffre les données personnelles (noms, plaques, emails).
+        Elle n'est jamais stockée nulle part — si vous l'oubliez, les données
+        existantes seront illisibles.
+      </p>
+      <div class="field"><label>Phrase de chiffrement</label>
+        <input id="login-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
+
+      <button class="btn-primary" id="btn-login" type="submit" style="margin-top:8px">Se connecter</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DÉVERROUILLAGE (après refresh de page, si déjà connecté)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-passphrase">
+  <div class="login-wrap">
+    <div class="login-logo">Camping de Sagnat</div>
+    <div class="login-sub">Session déverrouillée</div>
+    <p class="passphrase-note" style="margin-bottom:20px">
+      Vous êtes connecté·e. Entrez votre phrase de chiffrement pour accéder aux données.
+    </p>
+    <div class="login-error" id="passphrase-error" style="display:none"></div>
+    <form id="form-passphrase">
+      <div class="field"><label>Phrase de chiffrement</label>
+        <input id="input-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
+      <button class="btn-primary" id="btn-passphrase" type="submit" style="margin-top:8px">Déverrouiller</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     LISTE DES SÉJOURS
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-list">
+  <div class="hd">
+    <div class="hd-row">
+      <div>
+        <div class="eyebrow">Camping de Sagnat</div>
+        <h1>Séjours en cours</h1>
+      </div>
+      <span class="elec-summary" id="elec-summary">⚡ — / —</span>
+    </div>
+    <div class="hd-actions">
+      <button class="btn-ghost" onclick="app.showView('stats')">Statistiques →</button>
+      <button class="btn-ghost" id="btn-logout">Déconnexion</button>
+    </div>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" type="text" id="search-input" placeholder="Rechercher client, plaque…">
+  </div>
+  <div class="scroll" id="resa-list"></div>
+  <div class="bar">
+    <button class="btn-primary" onclick="app.showView('new')">+ Nouvelle arrivée</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NOUVELLE ARRIVÉE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-new">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('list')">← Retour</button></div>
+    <div class="eyebrow" style="margin-top:10px">Enregistrement</div>
+    <h1>Nouvelle arrivée</h1>
+  </div>
+  <div class="scroll">
+
+    <div class="card">
+      <div class="card-title">Client</div>
+      <div class="field"><label>Nom complet *</label><input id="f-name" type="text" placeholder="Marie Dupont"></div>
+      <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="marie@exemple.com"></div>
+      <div class="field"><label>Téléphone</label><input id="f-phone" type="tel" placeholder="06 12 34 56 78"></div>
+      <div class="field"><label>Plaque d'immatriculation</label><input id="f-plate" type="text" placeholder="AB-123-CD"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Forfait</div>
+      <!-- TODO: forfait distinct pour les tentes — à définir -->
+      <div class="field">
+        <label>Électricité *</label>
+        <div class="elec-toggle">
+          <div class="elec-btn selected" id="elec-no"  onclick="app.selectElec(false)">
+            <div class="elec-name">Sans électricité</div><div class="elec-price">15€ / nuit</div>
+          </div>
+          <div class="elec-btn"          id="elec-yes" onclick="app.selectElec(true)">
+            <div class="elec-name">Avec électricité</div><div class="elec-price">20€ / nuit</div>
+          </div>
+        </div>
+        <div id="elec-full-msg" style="display:none;margin-top:8px;font-size:0.72rem;color:var(--danger)">
+          ⚠ Toutes les prises sont occupées.
+        </div>
+        <div class="socket-picker" id="socket-picker">
+          <label style="margin-top:4px">Numéro de prise *</label>
+          <div class="socket-grid" id="socket-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Dates</div>
+      <div class="grid2">
+        <div class="field"><label>Arrivée *</label><input id="f-arrival"   type="date" oninput="app.updateCalc()"></div>
+        <div class="field"><label>Départ *</label> <input id="f-departure" type="date" oninput="app.updateCalc()"></div>
+      </div>
+      <div class="night-pill" id="night-pill"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Personnes & suppléments</div>
+      <p class="notice" style="margin-bottom:10px">Forfait : 2 adultes + 1 véhicule + douches/toilettes inclus.<br>Taxe de séjour : 1€/pers/nuit (enfants &lt;3 ans exemptés).</p>
+
+      <div class="stepper-row">
+        <div class="stepper-info"><div class="stepper-label">Adultes supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.step('adults',-1)">−</button><span class="step-count" id="count-adults">0</span><button class="step-btn" onclick="app.step('adults',1)">+</button></div>
+      </div>
+      <div class="stepper-row">
+        <div class="stepper-info"><div class="stepper-label">Adolescents (moins de 16 ans)</div><div class="stepper-sub">+3€ / nuit</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.step('teens',-1)">−</button><span class="step-count" id="count-teens">0</span><button class="step-btn" onclick="app.step('teens',1)">+</button></div>
+      </div>
+      <div class="stepper-row">
+        <div class="stepper-info"><div class="stepper-label">Enfants (moins de 3 ans)</div><div class="stepper-sub">Gratuit · exemptés de taxe</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.step('babies',-1)">−</button><span class="step-count" id="count-babies">0</span><button class="step-btn" onclick="app.step('babies',1)">+</button></div>
+      </div>
+      <div class="stepper-row">
+        <div class="stepper-info"><div class="stepper-label">Animaux</div><div class="stepper-sub">Gratuit</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.step('animals',-1)">−</button><span class="step-count" id="count-animals">0</span><button class="step-btn" onclick="app.step('animals',1)">+</button></div>
+      </div>
+      <div class="stepper-row">
+        <div class="stepper-info"><div class="stepper-label">Véhicules supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.step('vehicles',-1)">−</button><span class="step-count" id="count-vehicles">0</span><button class="step-btn" onclick="app.step('vehicles',1)">+</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Notes</div>
+      <div class="field"><textarea id="f-notes" rows="3" placeholder="Animaux, besoins spéciaux, remarques…"></textarea></div>
+    </div>
+
+    <div class="total-pill" id="total-pill">
+      <span class="tp-label">Total estimé (taxe incluse)</span>
+      <span class="tp-amount" id="total-amount">0€</span>
+    </div>
+  </div>
+  <div class="bar">
+    <button class="btn-primary" id="btn-save" onclick="app.saveNewReservation()">Enregistrer l'arrivée</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FICHE DÉTAIL
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-detail">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('list')">← Retour</button></div>
+    <div id="det-eyebrow" style="margin-top:10px"></div>
+    <h1 id="det-name"></h1>
+  </div>
+  <div class="scroll">
+    <div class="card" id="det-client"></div>
+    <div class="card" id="det-sejour"></div>
+    <div class="card" id="det-billing"></div>
+    <div class="card" id="det-notes" style="display:none"></div>
+    <div class="depart-confirm" id="depart-confirm">
+      Les informations personnelles (nom, email, téléphone, plaque) seront
+      <strong>définitivement anonymisées</strong>. Les données financières sont
+      conservées pour la comptabilité et l'archivage.
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-danger" id="btn-confirm-depart" style="flex:1" onclick="app.confirmDepart()">Confirmer le départ</button>
+        <button class="btn-secondary" style="flex:1" onclick="app.cancelDepart()">Annuler</button>
+      </div>
+    </div>
+  </div>
+  <div class="bar">
+    <button class="btn-primary"   onclick="app.showInvoice()">Générer & envoyer la note de séjour</button>
+    <button class="btn-secondary" onclick="app.askDepart()">Procéder au départ</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NOTE DE SÉJOUR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-invoice">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('detail')">← Retour</button></div>
+    <div class="eyebrow" style="margin-top:10px">Document</div>
+    <h1>Note de séjour</h1>
+  </div>
+  <div class="scroll">
+    <div class="invoice-wrap" id="invoice-content"></div>
+  </div>
+  <div class="bar">
+    <button class="btn-primary"   id="send-btn" onclick="app.sendInvoice()">Envoyer par email</button>
+    <button class="btn-secondary" onclick="app.printInvoice()">Télécharger / Imprimer PDF</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STATISTIQUES
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-stats">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('list')">← Retour</button></div>
+    <div class="eyebrow" style="margin-top:10px">Camping de Sagnat</div>
+    <h1>Statistiques</h1>
+  </div>
+  <div class="scroll">
+    <div class="card">
+      <div class="card-title">Période</div>
+      <div class="grid2">
+        <div class="field"><label>Du</label><input type="date" id="stat-from"></div>
+        <div class="field"><label>Au</label><input type="date" id="stat-to"></div>
+      </div>
+    </div>
+    <div class="kpi-grid"  id="kpi-grid"></div>
+    <div class="card"      id="stat-details"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
