@@ -190,7 +190,7 @@ el.className   = 'elec-summary' + (occ >= tarifs.nbPrises ? ' full' : occ >= tar
       <div style="flex:1;min-width:0">
         <div class="resa-name"><span class="dot"></span>${r.clientName}</div>
         <div class="resa-meta">
-          ${r.electricity ? `⚡ Prise n°${r.socketId}` : 'Sans électricité'}
+          ${r.electricity ? `⚡ Prise n° ` : 'Sans électricité'}
           · ${fmtDate(r.arrivalDate)} → ${fmtDate(r.departureDate)}
           · ${r.nights} nuit${r.nights > 1 ? 's' : ''}
         </div>
