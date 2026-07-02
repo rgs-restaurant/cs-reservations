@@ -57,9 +57,8 @@ export function calcTotal(elec, adults, teens, nights, vehicles) {
   return calcNightly(elec, adults, teens, vehicles) * nights + calcTaxe(adults, teens, nights);
 }
 function takenSockets() {
-  return reservations.filter(r => r.electricity && r.socketId && !r.departed).map(r => r.socketId);
+  return reservations.filter(r => r.electricity && !r.departed).length;
 }
-
 // ── Auth & initialisation ─────────────────────────────────────
 onAuthChange(async (user) => {
   if (!user) {
@@ -177,8 +176,8 @@ function renderList() {
   const occ = takenSockets().length;
   const el  = document.getElementById('elec-summary');
   if (el) {
-    el.textContent = `⚡ ${occ} / ${tarifs.nbPrises} prises`;
-    el.className   = 'elec-summary' + (occ >= tarifs.nbPrises ? ' full' : occ >= tarifs.nbPrises - 1 ? ' warn' : '');
+el.textContent = `⚡ ${occ} / ${tarifs.nbPrises} prises`;
+el.className   = 'elec-summary' + (occ >= tarifs.nbPrises ? ' full' : occ >= tarifs.nbPrises - 1 ? ' warn' : '');
   }
 
   if (!data.length) {
@@ -316,7 +315,7 @@ export function printInvoice() {
 
 // ── FORMULAIRE NOUVELLE RÉSERVATION ──────────────────────────
 export function selectElec(v) {
-  if (v && takenSockets().length >= tarifs.nbPrises) return;
+  if (v && takenSockets() >= tarifs.nbPrises) return;
   hasElec = v;
   document.getElementById('elec-no').classList.toggle('selected',  !v);
   document.getElementById('elec-yes').classList.toggle('selected',  v);
@@ -326,24 +325,9 @@ export function selectElec(v) {
 }
 
 export function refreshSocketUI() {
-  const taken   = takenSockets();
-  const full    = taken.length >= tarifs.nbPrises;
+  const full = takenSockets() >= tarifs.nbPrises;
   document.getElementById('elec-full-msg').style.display = (full && hasElec) ? '' : 'none';
   document.getElementById('elec-yes').classList.toggle('disabled-opt', full && !hasElec);
-
-  const picker = document.getElementById('socket-picker');
-  picker.style.display = hasElec ? '' : 'none';
-  if (!hasElec) { selectedSocket = null; return; }
-
-  let html = '';
-  for (let i = 1; i <= tarifs.nbPrises; i++) {
-    const isTaken    = taken.includes(i);
-    const isSelected = selectedSocket === i;
-    html += `<div class="socket-btn${isTaken ? ' taken' : ''}${isSelected ? ' selected' : ''}"
-      ${isTaken ? '' : `onclick="app.pickSocket(${i})"`}
-      title="${isTaken ? 'Prise occupée' : 'Prise ' + i}">${i}${isTaken ? '<br><small>🔒</small>' : ''}</div>`;
-  }
-  document.getElementById('socket-grid').innerHTML = html;
 }
 
 export function pickSocket(n) { selectedSocket = n; refreshSocketUI(); }
@@ -374,7 +358,6 @@ export async function saveNewReservation() {
   const arr  = document.getElementById('f-arrival').value;
   const dep  = document.getElementById('f-departure').value;
   if (!name || !arr || !dep) { alert('Champs obligatoires : nom et dates.'); return; }
-  if (hasElec && !selectedSocket) { alert('Merci de sélectionner un numéro de prise.'); return; }
   const nights = calcNights(arr, dep);
   if (nights <= 0) { alert('La date de départ doit être après la date d\'arrivée.'); return; }
 
