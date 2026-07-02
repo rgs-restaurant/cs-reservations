@@ -173,7 +173,7 @@ function renderList() {
   );
 
   // Badge prises
-  const occ = takenSockets().length;
+  const occ = takenSockets();
   const el  = document.getElementById('elec-summary');
   if (el) {
 el.textContent = `⚡ ${occ} / ${tarifs.nbPrises} prises`;
