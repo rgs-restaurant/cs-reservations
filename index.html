@@ -140,7 +140,17 @@
     <div class="card">
       <div class="card-title">Personnes & suppléments</div>
       <p class="notice" style="margin-bottom:10px">Forfait : 2 adultes + 1 véhicule + douches/toilettes inclus.<br>Taxe de séjour : 1€/pers/nuit (enfants &lt;3 ans exemptés).</p>
-
+<div class="stepper-row">
+  <div class="stepper-info">
+    <div class="stepper-label">Adultes inclus dans le forfait</div>
+    <div class="stepper-sub">Même prix pour 1 ou 2 · affecte la taxe</div>
+  </div>
+  <div class="stepper">
+    <button class="step-btn" onclick="app.stepBase(-1)">−</button>
+    <span class="step-count" id="count-base">2</span>
+    <button class="step-btn" onclick="app.stepBase(1)">+</button>
+  </div>
+</div>
       <div class="stepper-row">
         <div class="stepper-info"><div class="stepper-label">Adultes supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
         <div class="stepper"><button class="step-btn" onclick="app.step('adults',-1)">−</button><span class="step-count" id="count-adults">0</span><button class="step-btn" onclick="app.step('adults',1)">+</button></div>
