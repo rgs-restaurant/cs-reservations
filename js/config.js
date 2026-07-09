@@ -51,6 +51,6 @@ export const tarifs = {
   animal:     0,   // €/nuit par animal
   vehicule:   5,   // €/nuit par véhicule supplémentaire (1 inclus)
   taxeSejour: 1,   // €/pers/nuit (bébés exemptés)
-  nbPrises:   8,   // nombre total de prises électriques
+  nbPrises:   43,   // nombre total de prises électriques
   // TODO: forfait distinct pour les tentes — à définir
 };
