@@ -22,38 +22,33 @@
   <div class="login-wrap">
     <div class="login-logo">Camping de Sagnat</div>
     <div class="login-sub">Gestion interne</div>
-
     <div class="login-error" id="login-error"></div>
-
     <form id="form-login" autocomplete="on">
       <div class="field"><label>Email</label>
         <input id="login-email" type="email" placeholder="camping.sagnat@gmail.com" autocomplete="email" required></div>
       <div class="field"><label>Mot de passe</label>
         <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required></div>
-
       <div class="login-divider"><span>Chiffrement des données</span></div>
       <p class="passphrase-note">
         Cette phrase déchiffre les données personnelles (noms, plaques, emails).
-        Elle n'est jamais stockée nulle part — si vous l'oubliez, les données
-        existantes seront illisibles.
+        Elle n'est jamais stockée nulle part.
       </p>
       <div class="field"><label>Phrase de chiffrement</label>
         <input id="login-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
-
       <button class="btn-primary" id="btn-login" type="submit" style="margin-top:8px">Se connecter</button>
     </form>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
-     DÉVERROUILLAGE (après refresh de page, si déjà connecté)
+     DÉVERROUILLAGE
      ═══════════════════════════════════════════════════════════ -->
 <div class="view" id="view-passphrase">
   <div class="login-wrap">
     <div class="login-logo">Camping de Sagnat</div>
     <div class="login-sub">Session déverrouillée</div>
     <p class="passphrase-note" style="margin-bottom:20px">
-      Vous êtes connecté·e. Entrez votre phrase de chiffrement pour accéder aux données.
+      Entrez votre phrase de chiffrement pour accéder aux données.
     </p>
     <div class="login-error" id="passphrase-error" style="display:none"></div>
     <form id="form-passphrase">
@@ -61,11 +56,14 @@
         <input id="input-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
       <button class="btn-primary" id="btn-passphrase" type="submit" style="margin-top:8px">Déverrouiller</button>
     </form>
+    <button id="btn-logout" style="margin-top:16px;width:100%;background:transparent;border:none;color:var(--text3);font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;">
+      Changer de compte / Se déconnecter
+    </button>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
-     LISTE DES SÉJOURS
+     LISTE
      ═══════════════════════════════════════════════════════════ -->
 <div class="view" id="view-list">
   <div class="hd">
@@ -139,7 +137,24 @@
 
     <div class="card">
       <div class="card-title">Personnes & suppléments</div>
-      <p class="notice" style="margin-bottom:10px">Forfait : 2 adultes + 1 véhicule + douches/toilettes inclus.<br>Taxe de séjour : 1€/pers/nuit (enfants &lt;3 ans exemptés).</p>
+      <p class="notice" style="margin-bottom:10px">
+        Forfait : jusqu'à 2 adultes + 1 véhicule + douches/toilettes.<br>
+        Taxe de séjour : 1€/pers/nuit (enfants &lt;3 ans exemptés).
+      </p>
+
+      <!-- Adultes inclus dans le forfait (1 ou 2, même prix) -->
+      <div class="stepper-row">
+        <div class="stepper-info">
+          <div class="stepper-label">Adultes inclus dans le forfait</div>
+          <div class="stepper-sub">1 ou 2 — même prix · affecte uniquement la taxe</div>
+        </div>
+        <div class="stepper">
+          <button class="step-btn" onclick="app.stepBase(-1)">−</button>
+          <span class="step-count" id="count-base">2</span>
+          <button class="step-btn" onclick="app.stepBase(1)">+</button>
+        </div>
+      </div>
+
       <div class="stepper-row">
         <div class="stepper-info"><div class="stepper-label">Adultes supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
         <div class="stepper"><button class="step-btn" onclick="app.step('adults',-1)">−</button><span class="step-count" id="count-adults">0</span><button class="step-btn" onclick="app.step('adults',1)">+</button></div>
@@ -193,8 +208,7 @@
     <div class="card" id="det-notes" style="display:none"></div>
     <div class="depart-confirm" id="depart-confirm">
       Les informations personnelles (nom, email, téléphone, plaque) seront
-      <strong>définitivement anonymisées</strong>. Les données financières sont
-      conservées pour la comptabilité et l'archivage.
+      <strong>définitivement anonymisées</strong>. Les données financières sont conservées.
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn-danger" id="btn-confirm-depart" style="flex:1" onclick="app.confirmDepart()">Confirmer le départ</button>
         <button class="btn-secondary" style="flex:1" onclick="app.cancelDepart()">Annuler</button>
@@ -248,7 +262,6 @@
 </div>
 
 </div><!-- /app -->
-
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
