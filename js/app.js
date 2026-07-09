@@ -31,7 +31,7 @@ export function showView(id) {
 
 function showError(msg) {
   const el = document.getElementById('login-error');
-  if (el) { el.textContent = msg; el.style.display = ''; }
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 function hideError() {
   const el = document.getElementById('login-error');
