@@ -72,6 +72,12 @@ export async function getKeyTest() {
   return snap.data().test ?? null;
 }
 
+// Sauvegarde le sel et la valeur de test lors de la toute première connexion
+export async function initMeta(salt, test) {
+  const ref = doc(db, 'meta', 'config');
+  await setDoc(ref, { salt, test });
+}
+
 // ── Numérotation NS (atomique) ────────────────────────────────
 export async function nextNS() {
   const year    = String(new Date().getFullYear());
