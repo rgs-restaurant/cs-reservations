@@ -12,12 +12,13 @@ import {
 import { sendInvoiceEmail, buildInvoiceHTML } from './email.js';
 
 // ── État global ───────────────────────────────────────────────
-let cryptoKey    = null;  // jamais persisté, vit en mémoire uniquement
-let reservations = [];
-let selectedResa = null;
-let counters     = { adults:0, teens:0, babies:0, animals:0, vehicles:0 };
-let hasElec      = false;
-let selectedSocket = null;
+let cryptoKey     = null;
+let reservations  = [];
+let selectedResa  = null;
+let counters      = { adults:0, teens:0, babies:0, animals:0, vehicles:0 };
+let hasElec       = false;
+let selectedSocket= null;
+let baseAdults    = 2;  // adultes inclus dans le forfait (1 ou 2, même prix)
 
 // ── Navigation ────────────────────────────────────────────────
 export function showView(id) {
@@ -50,53 +51,38 @@ export function calcNightly(elec, adults, teens, vehicles) {
   const base = elec ? tarifs.baseAvec : tarifs.baseSans;
   return base + (adults||0)*tarifs.adulte + (teens||0)*tarifs.ado + (vehicles||0)*tarifs.vehicule;
 }
-export function calcTaxe(adults, teens, nights) {
-  return (2 + (adults||0) + (teens||0)) * nights;
+// base = adultes inclus dans le forfait (1 ou 2)
+export function calcTaxe(base, adults, teens, nights) {
+  return ((base||2) + (adults||0) + (teens||0)) * nights;
 }
-export function calcTotal(elec, adults, teens, nights, vehicles) {
-  return calcNightly(elec, adults, teens, vehicles) * nights + calcTaxe(adults, teens, nights);
+export function calcTotal(elec, base, adults, teens, nights, vehicles) {
+  return calcNightly(elec, adults, teens, vehicles) * nights
+       + calcTaxe(base, adults, teens, nights);
 }
 function takenSockets() {
   return reservations.filter(r => r.electricity && !r.departed).length;
 }
-// ── Auth & initialisation ─────────────────────────────────────
+
+// ── Auth ──────────────────────────────────────────────────────
 onAuthChange(async (user) => {
-  if (!user) {
-    // Pas connecté → écran de connexion complet
-    showView('login');
-    return;
-  }
-  if (!cryptoKey) {
-    // Connecté Firebase mais clé pas en mémoire (refresh de page)
-    showView('passphrase');
-    return;
-  }
-  // Tout bon → application
+  if (!user)       { showView('login');      return; }
+  if (!cryptoKey)  { showView('passphrase'); return; }
   await refreshReservations();
   showView('list');
 });
 
-// Connexion complète (email + password + phrase)
 document.getElementById('form-login')?.addEventListener('submit', async e => {
   e.preventDefault();
   hideError();
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Connexion…';
-
   try {
     const email      = document.getElementById('login-email').value.trim();
     const password   = document.getElementById('login-password').value;
     const passphrase = document.getElementById('login-passphrase').value;
-
     if (!passphrase) throw new Error('La phrase de chiffrement est obligatoire.');
-
-    // 1. Firebase Auth
     await login(email, password);
-
-    // 2. Sel + clé
     await initCryptoKey(passphrase);
-
-    // 3. Charger et afficher
     await refreshReservations();
     showView('list');
   } catch (err) {
@@ -108,40 +94,35 @@ document.getElementById('form-login')?.addEventListener('submit', async e => {
   }
 });
 
-// Saisie phrase seule (après refresh de page si déjà connecté Firebase)
 document.getElementById('form-passphrase')?.addEventListener('submit', async e => {
   e.preventDefault();
-  const btn  = document.getElementById('btn-passphrase');
+  const btn   = document.getElementById('btn-passphrase');
   const errEl = document.getElementById('passphrase-error');
   btn.disabled = true; btn.textContent = 'Vérification…';
   errEl.style.display = 'none';
-
   try {
     const passphrase = document.getElementById('input-passphrase').value;
     await initCryptoKey(passphrase);
     await refreshReservations();
     showView('list');
   } catch (err) {
-    errEl.textContent = err.message || 'Phrase incorrecte.';
-    errEl.style.display = '';
-    btn.disabled = false; btn.textContent = 'Déverrouiller';
+    errEl.textContent    = err.message || 'Phrase incorrecte.';
+    errEl.style.display  = '';
+    btn.disabled         = false;
+    btn.textContent      = 'Déverrouiller';
   }
 });
 
 async function initCryptoKey(passphrase) {
   let salt = await getSalt();
-
   if (!salt) {
-    // Première utilisation : on génère le sel ici, une seule fois
-    salt = generateSalt();
+    salt       = generateSalt();
     const key  = await deriveKey(passphrase, salt);
     const test = await createKeyTest(key);
     await initMeta(salt, test);
-    cryptoKey = key;
+    cryptoKey  = key;
     return;
   }
-
-  // Connexions suivantes : vérifier la phrase
   const key  = await deriveKey(passphrase, salt);
   const test = await getKeyTest();
   if (test) {
@@ -153,9 +134,16 @@ async function initCryptoKey(passphrase) {
 
 async function refreshReservations() {
   reservations = await loadReservations(cryptoKey);
+
+  // Anonymisation automatique des séjours dont la date de départ est passée
+  const today   = new Date().toISOString().split('T')[0];
+  const expired = reservations.filter(r => !r.departed && r.departureDate < today);
+  if (expired.length > 0) {
+    await Promise.all(expired.map(r => anonymizeOnDeparture(r.firestoreId, cryptoKey)));
+    reservations = await loadReservations(cryptoKey);
+  }
 }
 
-// Déconnexion
 document.getElementById('btn-logout')?.addEventListener('click', async () => {
   cryptoKey    = null;
   reservations = [];
@@ -172,12 +160,12 @@ function renderList() {
     (!q || r.clientName.toLowerCase().includes(q) || (r.licensePlate||'').toLowerCase().includes(q))
   );
 
-  // Badge prises
   const occ = takenSockets();
   const el  = document.getElementById('elec-summary');
   if (el) {
-el.textContent = `⚡ ${occ} / ${tarifs.nbPrises} prises`;
-el.className   = 'elec-summary' + (occ >= tarifs.nbPrises ? ' full' : occ >= tarifs.nbPrises - 1 ? ' warn' : '');
+    el.textContent = `⚡ ${occ} / ${tarifs.nbPrises} prises`;
+    el.className   = 'elec-summary'
+      + (occ >= tarifs.nbPrises ? ' full' : occ >= tarifs.nbPrises - 1 ? ' warn' : '');
   }
 
   if (!data.length) {
@@ -190,7 +178,7 @@ el.className   = 'elec-summary' + (occ >= tarifs.nbPrises ? ' full' : occ >= tar
       <div style="flex:1;min-width:0">
         <div class="resa-name"><span class="dot"></span>${r.clientName}</div>
         <div class="resa-meta">
-          ${r.electricity ? `⚡ Elec. ` : 'Sans électricité'}
+          ${r.electricity ? '⚡ Avec électricité' : 'Sans électricité'}
           · ${fmtDate(r.arrivalDate)} → ${fmtDate(r.departureDate)}
           · ${r.nights} nuit${r.nights > 1 ? 's' : ''}
         </div>
@@ -213,6 +201,7 @@ export async function openDetail(firestoreId) {
   selectedResa = reservations.find(r => r.firestoreId === firestoreId);
   if (!selectedResa) return;
   const r       = selectedResa;
+  const base    = r.baseAdults || 2;
   const nightly = calcNightly(r.electricity, r.adults, r.teens, r.vehicles);
 
   document.getElementById('det-eyebrow').innerHTML =
@@ -229,12 +218,12 @@ export async function openDetail(firestoreId) {
 
   document.getElementById('det-sejour').innerHTML = `
     <div class="card-title">Séjour</div>
-    <div class="info-row"><span class="info-label">Forfait</span><span class="info-value">${r.electricity ? `⚡ Avec électricité ` : 'Sans électricité'}</span></div>
+    <div class="info-row"><span class="info-label">Forfait</span><span class="info-value">${r.electricity ? '⚡ Avec électricité' : 'Sans électricité'}</span></div>
     <div class="info-row"><span class="info-label">Arrivée</span><span class="info-value">${fmtDate(r.arrivalDate)}</span></div>
     <div class="info-row"><span class="info-label">Départ</span><span class="info-value">${fmtDate(r.departureDate)}</span></div>
     <div class="info-row"><span class="info-label">Durée</span><span class="info-value">${r.nights} nuit${r.nights > 1 ? 's' : ''}</span></div>`;
 
-  let bRows = `<div class="info-row"><span class="info-label">Forfait ${r.electricity ? 'avec élec.' : 'sans élec.'}</span><span class="info-value">${r.electricity ? tarifs.baseAvec : tarifs.baseSans}€/nuit</span></div>`;
+  let bRows = `<div class="info-row"><span class="info-label">Forfait ${r.electricity ? 'avec élec.' : 'sans élec.'} — ${base} pers. incluse${base > 1 ? 's' : ''}</span><span class="info-value">${r.electricity ? tarifs.baseAvec : tarifs.baseSans}€/nuit</span></div>`;
   if (r.adults)   bRows += `<div class="info-row"><span class="info-label">Adultes suppl. (×${r.adults})</span><span class="info-value">+${r.adults*tarifs.adulte}€/nuit</span></div>`;
   if (r.teens)    bRows += `<div class="info-row"><span class="info-label">Adolescents (×${r.teens})</span><span class="info-value">+${r.teens*tarifs.ado}€/nuit</span></div>`;
   if (r.babies)   bRows += `<div class="info-row"><span class="info-label">Enfants &lt;3 ans (×${r.babies})</span><span class="info-value">Gratuit</span></div>`;
@@ -279,8 +268,6 @@ export async function confirmDepart() {
 export function showInvoice() {
   if (!selectedResa) return;
   const r = selectedResa;
-
-  // Aperçu dans l'app
   document.getElementById('invoice-content').innerHTML =
     buildInvoiceHTML({ ...r, tarifs }, campingConfig);
 
@@ -288,7 +275,6 @@ export function showInvoice() {
   btn.textContent = r.clientEmail ? `Envoyer à ${r.clientEmail}` : 'Envoyer (copie camping)';
   btn.className   = 'btn-primary';
   btn.disabled    = false;
-
   showView('invoice');
 }
 
@@ -313,13 +299,12 @@ export function printInvoice() {
   view.classList.remove('print-me');
 }
 
-// ── FORMULAIRE NOUVELLE RÉSERVATION ──────────────────────────
+// ── FORMULAIRE ────────────────────────────────────────────────
 export function selectElec(v) {
   if (v && takenSockets() >= tarifs.nbPrises) return;
   hasElec = v;
   document.getElementById('elec-no').classList.toggle('selected',  !v);
   document.getElementById('elec-yes').classList.toggle('selected',  v);
-  if (!v) selectedSocket = null;
   refreshSocketUI();
   updateCalc();
 }
@@ -330,11 +315,15 @@ export function refreshSocketUI() {
   document.getElementById('elec-yes').classList.toggle('disabled-opt', full && !hasElec);
 }
 
-export function pickSocket(n) { selectedSocket = n; refreshSocketUI(); }
-
 export function step(key, dir) {
   counters[key] = Math.max(0, counters[key] + dir);
   document.getElementById('count-' + key).textContent = counters[key];
+  updateCalc();
+}
+
+export function stepBase(dir) {
+  baseAdults = Math.min(2, Math.max(1, baseAdults + dir));
+  document.getElementById('count-base').textContent = baseAdults;
   updateCalc();
 }
 
@@ -345,12 +334,29 @@ export function updateCalc() {
   const pill   = document.getElementById('night-pill');
   if (nights > 0) { pill.style.display = ''; pill.textContent = nights + ' nuit' + (nights > 1 ? 's' : ''); }
   else               pill.style.display = 'none';
+
   const tp = document.getElementById('total-pill');
   if (nights > 0) {
-    const total = calcTotal(hasElec, counters.adults, counters.teens, nights, counters.vehicles);
+    const total = calcTotal(hasElec, baseAdults, counters.adults, counters.teens, nights, counters.vehicles);
     tp.style.display = 'flex';
     document.getElementById('total-amount').textContent = total + '€';
   } else tp.style.display = 'none';
+}
+
+function resetForm() {
+  ['f-name','f-email','f-phone','f-plate','f-arrival','f-departure','f-notes']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  counters = { adults:0, teens:0, babies:0, animals:0, vehicles:0 };
+  ['adults','teens','babies','animals','vehicles']
+    .forEach(k => { const el = document.getElementById('count-' + k); if (el) el.textContent = '0'; });
+  baseAdults = 2;
+  document.getElementById('count-base').textContent = '2';
+  hasElec = false; selectedSocket = null;
+  document.getElementById('elec-no').classList.add('selected');
+  document.getElementById('elec-yes').classList.remove('selected');
+  document.getElementById('night-pill').style.display  = 'none';
+  document.getElementById('total-pill').style.display  = 'none';
+  refreshSocketUI();
 }
 
 export async function saveNewReservation() {
@@ -373,18 +379,19 @@ export async function saveNewReservation() {
       clientPhone:   document.getElementById('f-phone').value.trim(),
       licensePlate:  document.getElementById('f-plate').value.trim().toUpperCase(),
       electricity:   hasElec,
-      socketId:      hasElec ? selectedSocket : null,
+      socketId:      null,
       arrivalDate:   arr,
       departureDate: dep,
       nights,
-      adults:   counters.adults,
-      teens:    counters.teens,
-      babies:   counters.babies,
-      animals:  counters.animals,
-      vehicles: counters.vehicles,
-      totalPrice: calcTotal(hasElec, counters.adults, counters.teens, nights, counters.vehicles),
-      taxeAmt:    calcTaxe(counters.adults, counters.teens, nights),
-      notes:    document.getElementById('f-notes').value.trim(),
+      baseAdults,
+      adults:        counters.adults,
+      teens:         counters.teens,
+      babies:        counters.babies,
+      animals:       counters.animals,
+      vehicles:      counters.vehicles,
+      totalPrice:    calcTotal(hasElec, baseAdults, counters.adults, counters.teens, nights, counters.vehicles),
+      taxeAmt:       calcTaxe(baseAdults, counters.adults, counters.teens, nights),
+      notes:         document.getElementById('f-notes').value.trim(),
     }, cryptoKey);
 
     resetForm();
@@ -393,22 +400,8 @@ export async function saveNewReservation() {
   } catch (err) {
     alert('Erreur : ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Enregistrer';
+    btn.disabled = false; btn.textContent = 'Enregistrer l\'arrivée';
   }
-}
-
-function resetForm() {
-  ['f-name','f-email','f-phone','f-plate','f-arrival','f-departure','f-notes']
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  counters = { adults:0, teens:0, babies:0, animals:0, vehicles:0 };
-  ['adults','teens','babies','animals','vehicles']
-    .forEach(k => { const el = document.getElementById('count-' + k); if (el) el.textContent = '0'; });
-  hasElec = false; selectedSocket = null;
-  document.getElementById('elec-no').classList.add('selected');
-  document.getElementById('elec-yes').classList.remove('selected');
-  document.getElementById('night-pill').style.display  = 'none';
-  document.getElementById('total-pill').style.display  = 'none';
-  refreshSocketUI();
 }
 
 // ── STATISTIQUES ──────────────────────────────────────────────
@@ -450,13 +443,13 @@ export function renderStats() {
 }
 
 document.getElementById('stat-from')?.addEventListener('input', renderStats);
-document.getElementById('stat-to')?.addEventListener('input', renderStats);
+document.getElementById('stat-to')?.addEventListener('input',   renderStats);
 
 // ── Exposition globale (onclick dans le HTML) ─────────────────
 window.app = {
   showView, openDetail,
   askDepart, cancelDepart, confirmDepart,
   showInvoice, sendInvoice, printInvoice,
-  selectElec, pickSocket, step, updateCalc,
+  selectElec, step, stepBase, updateCalc,
   saveNewReservation, renderStats,
 };
