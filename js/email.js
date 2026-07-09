@@ -28,7 +28,7 @@ export function buildInvoiceHTML(r, campingCfg) {
                 + (teens   || 0) * tarifs.ado
                 + (vehicles|| 0) * tarifs.vehicule;
   const hebergement = nightly * nights;
-  const nbTaxe = 2 + (adults || 0) + (teens || 0);
+  const nbTaxe = (r.baseAdults || 2) + (adults || 0) + (teens || 0);
   const sirenLine = campingCfg.siren ? `<br>SIREN ${campingCfg.siren}` : '';
 
   let rows = `
@@ -78,7 +78,7 @@ export function buildInvoiceHTML(r, campingCfg) {
   <!-- Infos séjour -->
   <div style="font-size:11px;color:#a09880;margin-bottom:14px">
     Séjour du ${fmtDate(arrivalDate)} au ${fmtDate(departureDate)} · ${nights} nuit${nights > 1 ? 's' : ''}
-    ${electricity ? ` · Avec Electricité` : ''}
+    ${electricity ? ` · Prise n°${socketId}` : ''}
   </div>
 
   <!-- Tableau -->
