@@ -53,7 +53,7 @@ export function calcNightly(elec, adults, teens, vehicles) {
 }
 // base = adultes inclus dans le forfait (1 ou 2)
 export function calcTaxe(base, adults, teens, nights) {
-  return ((base||2) + (adults||0) + (teens||0)) * nights;
+  return ((base||2) + (adults||0)) * nights;
 }
 export function calcTotal(elec, base, adults, teens, nights, vehicles) {
   return calcNightly(elec, adults, teens, vehicles) * nights
