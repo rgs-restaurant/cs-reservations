@@ -16,6 +16,52 @@
 <div class="app">
 
 <!-- ═══════════════════════════════════════════════════════════
+     CONNEXION
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view active" id="view-login">
+  <div class="login-wrap">
+    <div class="login-logo">Camping de Sagnat</div>
+    <div class="login-sub">Gestion interne</div>
+    <div class="login-error" id="login-error"></div>
+    <form id="form-login" autocomplete="on">
+      <div class="field"><label>Email</label>
+        <input id="login-email" type="email" placeholder="camping.sagnat@gmail.com" autocomplete="email" required></div>
+      <div class="field"><label>Mot de passe</label>
+        <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required></div>
+      <div class="login-divider"><span>Chiffrement des données</span></div>
+      <p class="passphrase-note">
+        Cette phrase déchiffre les données personnelles. Elle n'est jamais stockée nulle part.
+      </p>
+      <div class="field"><label>Phrase de chiffrement</label>
+        <input id="login-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
+      <button class="btn-primary" id="btn-login" type="submit" style="margin-top:8px">Se connecter</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DÉVERROUILLAGE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-passphrase">
+  <div class="login-wrap">
+    <div class="login-logo">Camping de Sagnat</div>
+    <div class="login-sub">Session déverrouillée</div>
+    <p class="passphrase-note" style="margin-bottom:20px">
+      Entrez votre phrase de chiffrement pour accéder aux données.
+    </p>
+    <div class="login-error" id="passphrase-error" style="display:none"></div>
+    <form id="form-passphrase">
+      <div class="field"><label>Phrase de chiffrement</label>
+        <input id="input-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
+      <button class="btn-primary" id="btn-passphrase" type="submit" style="margin-top:8px">Déverrouiller</button>
+    </form>
+    <button id="btn-logout" style="margin-top:16px;width:100%;background:transparent;border:none;color:var(--text3);font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;">
+      Changer de compte / Se déconnecter
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
      LISTE
      ═══════════════════════════════════════════════════════════ -->
 <div class="view" id="view-list">
