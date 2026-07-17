@@ -30,8 +30,7 @@
         <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required></div>
       <div class="login-divider"><span>Chiffrement des données</span></div>
       <p class="passphrase-note">
-        Cette phrase déchiffre les données personnelles (noms, plaques, emails).
-        Elle n'est jamais stockée nulle part.
+        Cette phrase déchiffre les données personnelles. Elle n'est jamais stockée nulle part.
       </p>
       <div class="field"><label>Phrase de chiffrement</label>
         <input id="login-passphrase" type="password" placeholder="Phrase secrète du camping" autocomplete="off" required></div>
@@ -102,8 +101,11 @@
     <div class="card">
       <div class="card-title">Client</div>
       <div class="field"><label>Nom complet *</label><input id="f-name" type="text" placeholder="Marie Dupont"></div>
+      <div class="grid2">
+        <div class="field"><label>Nationalité</label><input id="f-nationality" type="text" placeholder="Française"></div>
+        <div class="field"><label>Téléphone</label><input id="f-phone" type="tel" placeholder="06 12 34 56 78"></div>
+      </div>
       <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="marie@exemple.com"></div>
-      <div class="field"><label>Téléphone</label><input id="f-phone" type="tel" placeholder="06 12 34 56 78"></div>
       <div class="field"><label>Plaque d'immatriculation</label><input id="f-plate" type="text" placeholder="AB-123-CD"></div>
     </div>
 
@@ -139,22 +141,13 @@
       <div class="card-title">Personnes & suppléments</div>
       <p class="notice" style="margin-bottom:10px">
         Forfait : jusqu'à 2 adultes + 1 véhicule + douches/toilettes.<br>
-        Taxe de séjour : 1€/pers/nuit (enfants &lt;3 ans et adolescents exemptés).
+        Taxe de séjour : 1€/adulte/nuit (bébés &lt;3 ans et adolescents exemptés).
       </p>
 
-      <!-- Adultes inclus dans le forfait (1 ou 2, même prix) -->
       <div class="stepper-row">
-        <div class="stepper-info">
-          <div class="stepper-label">Adultes inclus dans le forfait</div>
-          <div class="stepper-sub">1 ou 2 — même prix · affecte uniquement la taxe</div>
-        </div>
-        <div class="stepper">
-          <button class="step-btn" onclick="app.stepBase(-1)">−</button>
-          <span class="step-count" id="count-base">2</span>
-          <button class="step-btn" onclick="app.stepBase(1)">+</button>
-        </div>
+        <div class="stepper-info"><div class="stepper-label">Adultes inclus dans le forfait</div><div class="stepper-sub">1 ou 2 — même prix · affecte uniquement la taxe</div></div>
+        <div class="stepper"><button class="step-btn" onclick="app.stepBase(-1)">−</button><span class="step-count" id="count-base">2</span><button class="step-btn" onclick="app.stepBase(1)">+</button></div>
       </div>
-
       <div class="stepper-row">
         <div class="stepper-info"><div class="stepper-label">Adultes supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
         <div class="stepper"><button class="step-btn" onclick="app.step('adults',-1)">−</button><span class="step-count" id="count-adults">0</span><button class="step-btn" onclick="app.step('adults',1)">+</button></div>
@@ -207,17 +200,21 @@
     <div class="card" id="det-billing"></div>
     <div class="card" id="det-notes" style="display:none"></div>
     <div class="depart-confirm" id="depart-confirm">
-      Les informations personnelles (nom, email, téléphone, plaque) seront
-      <strong>définitivement anonymisées</strong>. Les données financières sont conservées.
+      Les informations personnelles (nom, email, téléphone, plaque, nationalité) seront
+      <strong>définitivement anonymisées</strong> dans 3 jours si vous ne le faites pas maintenant.
+      Les données financières sont conservées.
       <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn-danger" id="btn-confirm-depart" style="flex:1" onclick="app.confirmDepart()">Confirmer le départ</button>
+        <button class="btn-danger" id="btn-confirm-depart" style="flex:1" onclick="app.confirmDepart()">Anonymiser maintenant</button>
         <button class="btn-secondary" style="flex:1" onclick="app.cancelDepart()">Annuler</button>
       </div>
     </div>
   </div>
   <div class="bar">
-    <button class="btn-primary"   onclick="app.showInvoice()">Générer & envoyer la note de séjour</button>
-    <button class="btn-secondary" onclick="app.askDepart()">Procéder au départ</button>
+    <button class="btn-primary" onclick="app.showInvoice()">Générer la note de séjour</button>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="app.openModify()">Modifier le séjour</button>
+      <button class="btn-secondary btn-secondary-warn" onclick="app.askDepart()">Procéder au départ</button>
+    </div>
   </div>
 </div>
 
@@ -236,6 +233,94 @@
   <div class="bar">
     <button class="btn-primary"   id="send-btn" onclick="app.sendInvoice()">Envoyer par email</button>
     <button class="btn-secondary" onclick="app.printInvoice()">Télécharger / Imprimer PDF</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODIFICATION DE SÉJOUR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-modify">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('detail')">← Retour</button></div>
+    <div id="mod-eyebrow" style="margin-top:10px"></div>
+    <h1 id="mod-name"></h1>
+  </div>
+  <div class="scroll">
+
+    <!-- Résumé séjour actuel -->
+    <div class="card" id="mod-current"></div>
+
+    <!-- Nouvelles dates -->
+    <div class="card">
+      <div class="card-title">Nouvelles dates</div>
+      <div class="grid2">
+        <div class="field"><label>Arrivée</label><input id="mod-arrival"   type="date" oninput="app.updateModCalc()"></div>
+        <div class="field"><label>Départ</label> <input id="mod-departure" type="date" oninput="app.updateModCalc()"></div>
+      </div>
+    </div>
+
+    <!-- Modifier personnes -->
+    <div class="card">
+      <div class="card-title">Personnes</div>
+      <div class="option-row">
+        <label class="option-left" style="font-size:0.85rem">
+          <input type="checkbox" id="mod-change-people" onchange="app.toggleModPeople()">
+          Modifier le nombre de personnes
+        </label>
+      </div>
+      <div id="mod-people-section" style="display:none;margin-top:12px">
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Adultes inclus dans le forfait</div><div class="stepper-sub">Affecte la taxe</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStepBase(-1)">−</button><span class="step-count" id="mcount-base">2</span><button class="step-btn" onclick="app.modStepBase(1)">+</button></div>
+        </div>
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Adultes supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStep('adults',-1)">−</button><span class="step-count" id="mcount-adults">0</span><button class="step-btn" onclick="app.modStep('adults',1)">+</button></div>
+        </div>
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Adolescents</div><div class="stepper-sub">+3€ / nuit</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStep('teens',-1)">−</button><span class="step-count" id="mcount-teens">0</span><button class="step-btn" onclick="app.modStep('teens',1)">+</button></div>
+        </div>
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Enfants &lt;3 ans</div><div class="stepper-sub">Gratuit</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStep('babies',-1)">−</button><span class="step-count" id="mcount-babies">0</span><button class="step-btn" onclick="app.modStep('babies',1)">+</button></div>
+        </div>
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Animaux</div><div class="stepper-sub">Gratuit</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStep('animals',-1)">−</button><span class="step-count" id="mcount-animals">0</span><button class="step-btn" onclick="app.modStep('animals',1)">+</button></div>
+        </div>
+        <div class="stepper-row">
+          <div class="stepper-info"><div class="stepper-label">Véhicules supplémentaires</div><div class="stepper-sub">+5€ / nuit</div></div>
+          <div class="stepper"><button class="step-btn" onclick="app.modStep('vehicles',-1)">−</button><span class="step-count" id="mcount-vehicles">0</span><button class="step-btn" onclick="app.modStep('vehicles',1)">+</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Récapitulatif -->
+    <div class="card" id="mod-recap" style="display:none"></div>
+
+  </div>
+  <div class="bar">
+    <button class="btn-primary"   onclick="app.showAmendment()">Générer l'avenant</button>
+    <button class="btn-secondary" id="btn-save-mod" onclick="app.saveModification()">Sauvegarder sans envoyer</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AVENANT DE SÉJOUR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="view" id="view-amendment">
+  <div class="hd">
+    <div class="hd-row"><button class="back-btn" onclick="app.showView('modify')">← Retour</button></div>
+    <div class="eyebrow" style="margin-top:10px">Document</div>
+    <h1>Avenant de séjour</h1>
+  </div>
+  <div class="scroll">
+    <div class="invoice-wrap" id="amendment-content"></div>
+  </div>
+  <div class="bar">
+    <button class="btn-primary"   id="amend-send-btn" onclick="app.sendAmendment()">Envoyer par email</button>
+    <button class="btn-secondary" onclick="app.printAmendment()">Télécharger / Imprimer PDF</button>
   </div>
 </div>
 

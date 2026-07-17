@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    style.css — Camping de Sagnat
-   Palette : même charte que rgs-restaurant.github.io/menu/camping
+   Palette identique à rgs-restaurant.github.io/menu/camping
    ───────────────────────────────────────────────────────────── */
 
 :root {
@@ -16,6 +16,7 @@
   --accent-l:   #86b886;
   --danger:     #c05a48;
   --success:    #4a8a5a;
+  --warn:       #c98a4b;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans:  'Inter', system-ui, sans-serif;
   --radius: 3px;
@@ -23,7 +24,6 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; display: flex; justify-content: center; min-height: 100vh; }
 button { cursor: pointer; background: none; border: none; color: inherit; font: inherit; }
 
@@ -42,9 +42,9 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 .back-btn { color: var(--text2); font-size: 0.82rem; letter-spacing: 0.06em; padding: 2px 0; transition: color var(--ease); }
 .back-btn:hover { color: var(--accent); }
 
-/* ── Prise badge ───────────────────────────────────────────── */
+/* ── Elec badge ────────────────────────────────────────────── */
 .elec-summary { font-size: 0.7rem; color: var(--text3); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 9px; }
-.elec-summary.warn { border-color: #c98a4b; color: #c98a4b; }
+.elec-summary.warn { border-color: var(--warn); color: var(--warn); }
 .elec-summary.full { border-color: var(--danger); color: var(--danger); }
 
 /* ── Scroll & bar ──────────────────────────────────────────── */
@@ -52,12 +52,17 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 .scroll::-webkit-scrollbar { width: 0; }
 .bar { background: var(--bg); border-top: 1px solid var(--border); padding: 13px 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
 
+/* Rangée 2 boutons côte à côte */
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
 /* ── Buttons ───────────────────────────────────────────────── */
 .btn-primary { width: 100%; background: var(--accent); color: #fff; border-radius: var(--radius); padding: 13px; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: background var(--ease); }
 .btn-primary:hover:not(:disabled) { background: var(--accent-l); }
 .btn-primary:disabled { opacity: 0.45; cursor: default; }
 .btn-secondary { width: 100%; background: transparent; color: var(--text2); border: 1px solid var(--border-l); border-radius: var(--radius); padding: 11px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; transition: all var(--ease); }
 .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+.btn-secondary-warn { color: var(--danger); border-color: rgba(192,90,72,0.4); }
+.btn-secondary-warn:hover { border-color: var(--danger); background: transparent; }
 .btn-danger { width: 100%; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: var(--radius); padding: 11px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; transition: all var(--ease); }
 .btn-danger:hover { background: var(--danger); color: #fff; }
 .btn-sent { width: 100%; background: transparent; color: var(--success); border: 1px solid var(--success); border-radius: var(--radius); padding: 13px; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -92,15 +97,27 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 .search-input::placeholder { color: var(--text3); }
 .search-input:focus { border-color: var(--border-l); }
 
+/* ── Status badges ─────────────────────────────────────────── */
+.status-badge { display: inline-block; padding: 1px 7px; border-radius: 2px; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.06em; border: 1px solid; }
+.status-active    { border-color: var(--success); color: var(--success); }
+.status-departing { border-color: var(--warn); color: var(--warn); }
+.status-overdue   { border-color: var(--danger); color: var(--danger); }
+
+/* ── Dots ──────────────────────────────────────────────────── */
+.dot          { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; flex-shrink: 0; background: var(--success); box-shadow: 0 0 0 2px rgba(74,138,90,0.2); }
+.dot-departing{ width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; flex-shrink: 0; background: var(--warn); box-shadow: 0 0 0 2px rgba(201,138,75,0.2); }
+.dot-overdue  { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; flex-shrink: 0; background: var(--danger); box-shadow: 0 0 0 2px rgba(192,90,72,0.2); }
+
 /* ── Reservation cards ─────────────────────────────────────── */
 .resa-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; transition: border-color var(--ease); }
 .resa-card:hover { border-color: var(--border-l); }
+.resa-overdue { border-color: rgba(192,90,72,0.25); background: #fdf8f6; }
+.resa-overdue:hover { border-color: rgba(192,90,72,0.5); }
 .resa-name { font-family: var(--font-serif); font-weight: 400; font-size: 1.1rem; margin-bottom: 5px; display: flex; align-items: center; gap: 7px; }
 .resa-meta { font-size: 0.75rem; color: var(--text2); line-height: 1.7; }
 .resa-right { text-align: right; flex-shrink: 0; margin-left: 10px; }
 .resa-price { font-family: var(--font-serif); font-size: 1.3rem; color: var(--accent); }
 .resa-sub   { font-size: 0.68rem; color: var(--text3); margin-top: 2px; }
-.dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; flex-shrink: 0; background: var(--success); box-shadow: 0 0 0 2px rgba(74,138,90,0.2); }
 
 /* ── Elec toggle ───────────────────────────────────────────── */
 .elec-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -111,14 +128,6 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 .elec-btn.selected .elec-name  { color: var(--accent); }
 .elec-btn.selected .elec-price { color: var(--text); }
 .elec-btn.disabled-opt { opacity: 0.4; pointer-events: none; }
-
-/* ── Socket picker ─────────────────────────────────────────── */
-.socket-picker { display: none; margin-top: 12px; }
-.socket-picker label { display: block; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; }
-.socket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.socket-btn { border: 1px solid var(--border); background: var(--bg3); border-radius: var(--radius); padding: 10px 4px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: all var(--ease); }
-.socket-btn.selected { border-color: var(--accent); background: var(--bg2); color: var(--accent); font-weight: 600; }
-.socket-btn.taken    { opacity: 0.35; cursor: not-allowed; font-size: 0.72rem; }
 
 /* ── Steppers ──────────────────────────────────────────────── */
 .stepper-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
@@ -131,11 +140,17 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 .step-btn:hover { background: var(--bg2); color: var(--accent); }
 .step-count    { width: 32px; text-align: center; font-size: 0.85rem; font-weight: 500; background: var(--bg); border-left: 1px solid var(--border); border-right: 1px solid var(--border); line-height: 30px; }
 
+/* ── Option row (checkbox) ─────────────────────────────────── */
+.option-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.option-row:last-child { border: none; }
+.option-left { display: flex; align-items: center; gap: 9px; font-size: 13.5px; cursor: pointer; }
+input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+
 /* ── Pills ─────────────────────────────────────────────────── */
-.night-pill  { display: none; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 13px; font-size: 0.78rem; color: var(--text2); margin-top: 8px; }
-.total-pill  { display: none; background: var(--bg2); border: 1px solid var(--border-l); border-radius: var(--radius); padding: 14px 15px; justify-content: space-between; align-items: center; }
-.tp-label    { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text2); }
-.tp-amount   { font-family: var(--font-serif); font-size: 1.6rem; color: var(--accent); }
+.night-pill { display: none; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 13px; font-size: 0.78rem; color: var(--text2); margin-top: 8px; }
+.total-pill { display: none; background: var(--bg2); border: 1px solid var(--border-l); border-radius: var(--radius); padding: 14px 15px; justify-content: space-between; align-items: center; }
+.tp-label   { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text2); }
+.tp-amount  { font-family: var(--font-serif); font-size: 1.6rem; color: var(--accent); }
 
 /* ── Info rows ─────────────────────────────────────────────── */
 .info-row    { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--border); }
@@ -146,6 +161,9 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 
 /* ── Depart confirm ────────────────────────────────────────── */
 .depart-confirm { display: none; background: var(--bg3); border: 1px solid var(--border-l); border-radius: var(--radius); padding: 14px; font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+
+/* ── Invoice / Amendment wrap ──────────────────────────────── */
+.invoice-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 
 /* ── Stats ─────────────────────────────────────────────────── */
 .kpi-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -164,8 +182,6 @@ button { cursor: pointer; background: none; border: none; color: inherit; font: 
 /* ── Misc ──────────────────────────────────────────────────── */
 .notice { font-size: 0.72rem; color: var(--text3); line-height: 1.6; }
 .empty  { text-align: center; padding: 50px 20px; color: var(--text3); font-size: 0.82rem; letter-spacing: 0.08em; }
-.invoice-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.invoice-wrap iframe, .invoice-wrap > div { width: 100%; min-height: 400px; }
 
 /* ── Print ─────────────────────────────────────────────────── */
 @media print {
