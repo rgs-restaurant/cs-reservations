@@ -84,7 +84,7 @@ export function buildInvoiceHTML(r, campingCfg) {
   ${clientHTML(r)}
   <div style="margin-bottom:12px;font-size:11px;color:#a09880">
     Séjour du ${fmtDate(r.arrivalDate)} au ${fmtDate(r.departureDate)} · ${nights} nuit${nights>1?'s':''}
-    ${electricity ? ` · Prise n°${r.socketId}` : ''}
+    ${electricity ? `` : ''}
   </div>
   <table style="width:100%;border-collapse:collapse">
     <thead><tr>
