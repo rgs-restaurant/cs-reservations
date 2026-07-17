@@ -33,7 +33,7 @@ export function buildInvoiceHTML(r, campingCfg) {
 
   let rows = `
     <tr><td style="padding:7px 0;border-bottom:1px solid #d0cbbf;font-size:13px;color:#7a7060">
-      Forfait emplacement${electricity ? ' — avec électricité' : ''}
+      Forfait emplacement${electricity ? ' — avec électricité'}
     </td><td style="padding:7px 0;border-bottom:1px solid #d0cbbf;text-align:right;font-size:13px;color:#7a7060">${nights}</td>
     <td style="padding:7px 0;border-bottom:1px solid #d0cbbf;text-align:right;font-size:13px;color:#7a7060">${electricity ? tarifs.baseAvec : tarifs.baseSans}€</td>
     <td style="padding:7px 0;border-bottom:1px solid #d0cbbf;text-align:right;font-size:13px;color:#7a7060">${(electricity ? tarifs.baseAvec : tarifs.baseSans) * nights}€</td></tr>`;
@@ -78,7 +78,6 @@ export function buildInvoiceHTML(r, campingCfg) {
   <!-- Infos séjour -->
   <div style="font-size:11px;color:#a09880;margin-bottom:14px">
     Séjour du ${fmtDate(arrivalDate)} au ${fmtDate(departureDate)} · ${nights} nuit${nights > 1 ? 's' : ''}
-    ${electricity ? `` : ''}
   </div>
 
   <!-- Tableau -->
